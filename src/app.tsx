@@ -25,6 +25,9 @@ const SearchReplaceForBlockEditor = () => {
   const [searchInput, setSearchInput] = useState('');
   const [replaceInput, setReplaceInput] = useState('');
   const [caseSensitive, setCaseSensitive] = useState(false);
+  const [matchCount, setMatchCount] = useState(0);
+
+  const postContent = select('core/editor').getEditedPostContent();
 
   const openModal = (): void => {
     setIsModalVisible(true);
@@ -54,6 +57,10 @@ const SearchReplaceForBlockEditor = () => {
     }
   };
 
+  const escapeRegExp = (string) => {
+    return string.replace(/[.*+?^=!:${}()|\[\]\/\\]/g, '\\$&');
+  };
+
   /**
    * Listen for Selection.
    *
@@ -75,6 +82,22 @@ const SearchReplaceForBlockEditor = () => {
       );
     };
   }, []);
+
+  // Function to count matches of the search term in the post content
+  useEffect(() => {
+
+    // console.log("Current Post Content: ", postContent);
+
+    // if (searchInput && postContent) {
+    //     const escapedSearchTerm = escapeRegExp(searchInput);
+    //     const regex = new RegExp(
+    //       `(?<!<[^>]*?)${escapedSearchTerm}(?<![^>]*<)`,
+    //       isCaseSensitive() || caseSensitive ? 'g' : 'gi'
+    //     );
+    //     const matches = (postContent.match(regex) || []).length;
+    //     setMatchCount(matches);
+    // }
+}, [searchInput, postContent, caseSensitive]);
 
   /**
    * Handle case sensitive toggle feature
@@ -111,6 +134,32 @@ const SearchReplaceForBlockEditor = () => {
 
     select('core/block-editor').getBlocks().forEach((element) => {
       recursivelyReplace(element, pattern, replaceInput);
+    });
+  };
+
+  /**
+   * Handle the implementation for when the user
+   * clicks the 'Replace' button.
+   *
+   * @since 1.0.0
+   *
+   * @returns {void}
+   */
+  const searchFn = (value): void => {
+    setMatchCount(0);
+    setSearchInput(value);
+
+    if (!value) {
+      return;
+    }
+
+    const pattern = new RegExp(
+      `(?<!<[^>]*)${value}(?<![^>]*<)`,
+      isCaseSensitive() || caseSensitive ? 'g' : 'gi'
+    );
+
+    select('core/block-editor').getBlocks().forEach((element) => {
+      recursivelySearch(element, pattern);
     });
   };
 
@@ -160,6 +209,51 @@ const SearchReplaceForBlockEditor = () => {
   }
 
   /**
+   * Recursively traverse and replace the text in the
+   * Block Editor with the user's text. Perform attribute update
+   * on a case by case basis based on mutating attribute.
+   *
+   * @since 1.0.0
+   * @since 1.0.1 Handle edge-cases for quote, pullquote & details block.
+   *
+   * @param {Object} element Gutenberg editor block.
+   * @param {string} pattern Search pattern.
+   * @param {string} text    Replace pattern.
+   *
+   * @returns {void}
+   */
+  const recursivelySearch = (element, pattern) => {
+    if (getAllowedBlocks().indexOf(element.name) !== -1) {
+      const args = { element, pattern};
+
+      switch (element.name) {
+        case 'core/quote':
+        case 'core/pullquote':
+          searchBlockAttribute(args, 'citation');
+          break;
+
+        case 'core/details':
+          searchBlockAttribute(args, 'summary');
+          break;
+        
+        case 'core/table':
+          searchTableContent(args);
+          break;
+
+        default:
+          searchBlockAttribute(args, 'content');
+          break;
+      }
+    }
+
+    if (element.innerBlocks.length) {
+      element.innerBlocks.forEach((innerElement) => {
+        recursivelySearch(innerElement, pattern);
+      });
+    }
+  }
+
+  /**
    * Do the actual job of replacing the string
    * by dispatching the change using the block's clientId
    * as reference.
@@ -198,6 +292,32 @@ const SearchReplaceForBlockEditor = () => {
       (dispatch('core/block-editor') as any)
         .updateBlockAttributes(clientId, { value: newString });
       setReplacements((items) => items + 1);
+    }
+  }
+
+  /**
+   * Do the actual job of replacing the string
+   * by dispatching the change using the block's clientId
+   * as reference.
+   *
+   * @since 1.0.1
+   *
+   * @param {Object} args      Args object containing element, pattern and text.
+   * @param {string} attribute The attribute to be mutated e.g. content.
+   *
+   * @returns {void}
+   */
+  const searchBlockAttribute = (args, attribute) => {
+    const { attributes, clientId } = args.element;
+
+    if (undefined === attributes || undefined === attributes[attribute]) {
+      return;
+    }
+
+    let oldString: string = attributes[attribute].text || attributes[attribute];
+    let matches = (oldString.match(args.pattern) || []).length;
+    if(matches){
+      setMatchCount(prevCount => prevCount + 1);
     }
   }
 
@@ -319,6 +439,92 @@ const SearchReplaceForBlockEditor = () => {
     }
   }
 
+  /**
+   * Do the actual job of replacing the string in table block
+   * by dispatching the change using the block's clientId
+   * as reference.
+   *
+   * @since 1.3.0
+   *
+   * @param {Object} args Args object containing element, pattern and text.
+   *
+   * @returns {void}
+   */
+  const searchTableContent = (args) => {
+    const { attributes, clientId } = args.element;
+
+    // Handle Table Caption Replacement
+    if (attributes && attributes.caption) {
+      let oldCaptionString = attributes.caption.originalHTML || attributes.caption;
+      let matches = (oldCaptionString.match(args.pattern) || []).length;
+      if(matches){
+        setMatchCount(prevCount => prevCount + 1);
+      }
+    }
+
+    // Replace body cells content
+
+    if(attributes.body){
+      console.log("body is", attributes.body);
+    }
+
+    if (attributes.body) {
+      const updatedBody = attributes.body.map(row => {
+        if (row.cells) {
+          row.cells = row.cells.map(cell => {
+            if (cell.content) {
+              let oldCellContent = cell.content;
+              let matches = (oldCellContent.match(args.pattern) || []).length;
+              if(matches){
+                setMatchCount(prevCount => prevCount + 1);
+              }
+            }
+            return cell;
+          });
+        }
+        return row;
+      });
+    }
+
+    // Replace head cells content
+    if (attributes.head) {
+      const updatedHead = attributes.head.map(row => {
+        if (row.cells) {
+          row.cells = row.cells.map(cell => {
+            if (cell.content && cell.content.originalHTML) {
+              let oldCellContent = cell.content.originalHTML;
+              let matches = (oldCellContent.match(args.pattern) || []).length;
+              if(matches){
+                setMatchCount(prevCount => prevCount + 1);
+              }
+            }
+            return cell;
+          });
+        }
+        return row;
+      });
+    }
+
+    // Replace foot cells content
+    if (attributes.foot) {
+      const updatedFoot = attributes.foot.map(row => {
+        if (row.cells) {
+          row.cells = row.cells.map(cell => {
+            if (cell.content && cell.content.originalHTML) {
+              let oldCellContent = cell.content.originalHTML;
+              let matches = (oldCellContent.match(args.pattern) || []).length;
+              if(matches){
+                setMatchCount(prevCount => prevCount + 1);
+              }
+            }
+            return cell;
+          });
+        }
+        return row;
+      });
+    }
+  }
+
 
   return (
     <>
@@ -340,7 +546,7 @@ const SearchReplaceForBlockEditor = () => {
                 type="text"
                 label={__('Search')}
                 value={searchInput}
-                onChange={(value) => setSearchInput(value)}
+                onChange={(value) => searchFn(value)}
                 placeholder="Lorem ipsum..."
                 __nextHasNoMarginBottom
               />
@@ -367,6 +573,16 @@ const SearchReplaceForBlockEditor = () => {
                 <div id="search-replace-modal__notification">
                   <p>
                     <strong>{replacements}</strong> {__('item(s) replaced successfully', 'search-replace-for-block-editor')}.
+                  </p>
+                </div>
+              ) : ''
+            }
+
+            {
+              matchCount && !replacements ? (
+                <div id="search-replace-modal__notification">
+                  <p>
+                    <strong>{matchCount}</strong> {__('item(s) found', 'search-replace-for-block-editor')}.
                   </p>
                 </div>
               ) : ''
