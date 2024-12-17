@@ -2,7 +2,8 @@
 
 ## 1.3.0
 * Fix table content replacement issue.
-* Tested up to WP 6.7.0.
+* Feat: Add Search count feature.
+* Tested up to WP 6.7.1.
 
 ## 1.2.2
 * Fix style issues for WP 6.6.2.
