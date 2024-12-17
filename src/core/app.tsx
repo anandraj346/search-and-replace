@@ -244,7 +244,11 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
 
       if (newCaptionString !== oldCaptionString) {
         const captionProperty = { caption: newCaptionString };
-        (dispatch('core/block-editor') as any).updateBlockAttributes(clientId, captionProperty);
+
+        if(args.context){
+          (dispatch('core/block-editor') as any).
+          updateBlockAttributes(clientId, captionProperty);
+        }
       }
     }
 
@@ -275,7 +279,11 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       // If any cell content was updated, dispatch the update
       if (JSON.stringify(updatedBody) !== JSON.stringify(attributes.body)) {
         const bodyProperty = { body: updatedBody };
-        (dispatch('core/block-editor') as any).updateBlockAttributes(clientId, bodyProperty);
+
+        if(args.context){
+          (dispatch('core/block-editor') as any).
+          updateBlockAttributes(clientId, bodyProperty);
+        }
       }
     }
 
@@ -304,7 +312,11 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       // If any head cell content was updated, dispatch the update
       if (JSON.stringify(updatedHead) !== JSON.stringify(attributes.head)) {
         const headProperty = { head: updatedHead };
-        (dispatch('core/block-editor') as any).updateBlockAttributes(clientId, headProperty);
+
+        if(args.context){
+          (dispatch('core/block-editor') as any).
+          updateBlockAttributes(clientId, headProperty);
+        }
       }
     }
 
@@ -333,7 +345,11 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       // If any foot cell content was updated, dispatch the update
       if (JSON.stringify(updatedFoot) !== JSON.stringify(attributes.foot)) {
         const footProperty = { foot: updatedFoot };
-        (dispatch('core/block-editor') as any).updateBlockAttributes(clientId, footProperty);
+
+        if(args.context){
+          (dispatch('core/block-editor') as any).
+          updateBlockAttributes(clientId, footProperty);
+        }
       }
     }
   }
