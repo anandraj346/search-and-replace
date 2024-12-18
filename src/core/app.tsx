@@ -48,6 +48,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
    */
   const closeModal = (): void => {
     setIsModalVisible(false);
+    setSearchInput('');
     setReplacements(0);
   }
 
@@ -116,8 +117,10 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       return;
     }
 
+    //original regex: (?<!<[^>]*)${searchInput}(?<![^>]*<)
+    //current regex: (?<!<[^>]*?)\\b${searchInput}\\b(?![^<]*?>)
     const pattern: RegExp = new RegExp(
-      `(?<!<[^>]*)${searchInput}(?<![^>]*<)`,
+      `(?<!<[^>]*?)\\b${searchInput}\\b(?![^<]*?>)`,
       isCaseSensitive() || caseSensitive ? 'g' : 'gi'
     );
 
@@ -400,6 +403,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
           <Modal
             title={__('Search & Replace', 'search-replace-for-block-editor')}
             onRequestClose={closeModal}
+            shouldCloseOnClickOutside={false}
             className="search-replace-modal"
           >
             <div id="search-replace-modal__text-group">
@@ -408,12 +412,12 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
                 label={__('Search')}
                 value={searchInput}
                 onChange={(value) => setSearchInput(value)}
-                placeholder="Lorem ipsum..."
+                placeholder="Search text..."
                 __nextHasNoMarginBottom
               />
               <TextControl
                 type="text"
-                label={__('Replace')}
+                label={__('Replace with')}
                 value={replaceInput}
                 onChange={(value) => setReplaceInput(value)}
                 __nextHasNoMarginBottom
