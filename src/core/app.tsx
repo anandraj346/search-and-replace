@@ -192,7 +192,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       return;
     }
 
-    let oldString: string = attributes[attribute].text || attributes[attribute];
+    let oldString: string = attributes[attribute].originalHTML || attributes[attribute];
     let newString: string = oldString.replace(args.pattern, () => {
       setReplacements((items) => items + 1);
       return args.text;
@@ -258,15 +258,22 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
         if (row.cells) {
 
           row.cells = row.cells.map(cell => {
-            if (cell.content && cell.content.originalHTML) {
-              let oldCellContent = cell.content.originalHTML;
+            if (cell.content || cell.content.originalHTML) {
+              let oldCellContent = cell.content.originalHTML || cell.content;
 
+              // const matches = oldCellContent.match(args.pattern);
+              // if (matches) {
+              //   setReplacements(prevItems => prevItems + matches.length);
+              // }
+    
+              // Perform the actual replacement
+              
               let newCellContent = oldCellContent.replace(args.pattern, () => {
                 setReplacements((items) => items + 1);
                 return args.text;
               });
-
-              if (newCellContent !== oldCellContent) {
+              
+              if ((newCellContent !== oldCellContent) && args.context) {
                 cell.content = newCellContent;
               }
             }
@@ -277,14 +284,14 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       });
 
       // If any cell content was updated, dispatch the update
-      if (JSON.stringify(updatedBody) !== JSON.stringify(attributes.body)) {
+      // if (JSON.stringify(updatedBody) !== JSON.stringify(attributes.body)) {
         const bodyProperty = { body: updatedBody };
 
         if(args.context){
           (dispatch('core/block-editor') as any).
           updateBlockAttributes(clientId, bodyProperty);
         }
-      }
+      // }
     }
 
     // Replace head cells content
@@ -292,14 +299,14 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       const updatedHead = attributes.head.map(row => {
         if (row.cells) {
           row.cells = row.cells.map(cell => {
-            if (cell.content && cell.content.originalHTML) {
-              let oldCellContent = cell.content.originalHTML;
+            if (cell.content || cell.content.originalHTML) {
+              let oldCellContent = cell.content.originalHTML || cell.content;
               let newCellContent = oldCellContent.replace(args.pattern, () => {
                 setReplacements((items) => items + 1);
                 return args.text;
               });
 
-              if (newCellContent !== oldCellContent) {
+              if ((newCellContent !== oldCellContent) && args.context) {
                 cell.content = newCellContent; 
               }
             }
@@ -310,14 +317,14 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       });
 
       // If any head cell content was updated, dispatch the update
-      if (JSON.stringify(updatedHead) !== JSON.stringify(attributes.head)) {
+      // if (JSON.stringify(updatedHead) !== JSON.stringify(attributes.head)) {
         const headProperty = { head: updatedHead };
 
         if(args.context){
           (dispatch('core/block-editor') as any).
           updateBlockAttributes(clientId, headProperty);
         }
-      }
+      // }
     }
 
     // Replace foot cells content
@@ -325,14 +332,14 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       const updatedFoot = attributes.foot.map(row => {
         if (row.cells) {
           row.cells = row.cells.map(cell => {
-            if (cell.content && cell.content.originalHTML) {
-              let oldCellContent = cell.content.originalHTML;
+            if (cell.content || cell.content.originalHTML) {
+              let oldCellContent = cell.content.originalHTML || cell.content;
               let newCellContent = oldCellContent.replace(args.pattern, () => {
                 setReplacements((items) => items + 1);
                 return args.text;
               });
 
-              if (newCellContent !== oldCellContent) {
+              if ((newCellContent !== oldCellContent) && args.context) {
                 cell.content = newCellContent; 
               }
             }
@@ -343,14 +350,14 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       });
 
       // If any foot cell content was updated, dispatch the update
-      if (JSON.stringify(updatedFoot) !== JSON.stringify(attributes.foot)) {
+      // if (JSON.stringify(updatedFoot) !== JSON.stringify(attributes.foot)) {
         const footProperty = { foot: updatedFoot };
 
         if(args.context){
           (dispatch('core/block-editor') as any).
           updateBlockAttributes(clientId, footProperty);
         }
-      }
+      // }
     }
   }
   
