@@ -35,6 +35,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
    * @returns {void}
    */
   const openModal = (): void => {
+    handleSelection();
     setIsModalVisible(true);
     setReplacements(0);
   }
