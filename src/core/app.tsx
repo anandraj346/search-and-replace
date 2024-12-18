@@ -49,6 +49,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
   const closeModal = (): void => {
     setIsModalVisible(false);
     setSearchInput('');
+    setReplaceInput('');
     setReplacements(0);
   }
 
