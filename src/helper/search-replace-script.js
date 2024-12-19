@@ -3,7 +3,9 @@ $(document).ready(function () {
 	$(window).on('stateChanged', function (event) {
 
 		var state = event.originalEvent.detail;
-		
+		const specificWord = state.matchString;
+		const regex = new RegExp(`(?<!<[^>]*?)\\b${specificWord}\\b(?![^<]*?>)`, state.caseSensitive ? 'g' : 'gi');
+
 		if(state.showMatches){
 			let search_matches_html = `
 				<div class="components-modal__frame search-replace-modal js-search-matches" style="height:400px;">
@@ -15,7 +17,10 @@ $(document).ready(function () {
 						</div>
 						<div>
 							<ul style="list-style:decimal;">
-								${[...state.matches].map(match => `<li>${match}</li>`).join('')}
+								${[...state.matches].map(match => {
+									const updatedStr = match.replace(regex, (e) => `<span class="search-word-highlight" style="background:yellow;">${e}</span>`);
+									return `<li>${updatedStr}</li>`;
+								}).join('')}
 							</ul>
 						</div>
 					</div>

@@ -110,6 +110,8 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
 
   useEffect(() => {
     const event = new CustomEvent('stateChanged', { detail: {
+      matchString: searchInput,
+      caseSensitive: caseSensitive,
       showMatches: showMatches,
       matches: matches
     } });
