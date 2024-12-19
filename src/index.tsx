@@ -1,8 +1,8 @@
 import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
-
 import SearchReplaceForBlockEditor from './core/app';
 import { getAppRoot, getEditorRoot, isWpVersion } from './core/utils'
+import './helper/search-replace-script';
 
 (async () => {
   try {

@@ -24,6 +24,8 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [replaceInput, setReplaceInput] = useState('');
+  const [matches, setMatches] = useState(new Set());
+  const [showMatches, setShowMatches] = useState(false);
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [context, setContext] = useState(false);
 
@@ -51,8 +53,27 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
     setIsModalVisible(false);
     setSearchInput('');
     setReplaceInput('');
+    setMatches(new Set());
     setReplacements(0);
   }
+
+  const addMatchValue = (value) => {
+    setMatches((prevValues) => {
+      // Create a new Set by spreading the previous state and adding the new value
+      const newSet = new Set(prevValues);
+      newSet.add(value);
+      return newSet;
+    });
+  };
+
+  // Function to remove a value from the Set
+  const removeMatchValue = (value) => {
+    setMatches((prevValues) => {
+      const newSet = new Set(prevValues);
+      newSet.delete(value);
+      return newSet;
+    });
+  };
 
   /**
    * On Selection.
@@ -87,6 +108,14 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
     replace(false);
   }, [searchInput, caseSensitive]);
 
+  useEffect(() => {
+    const event = new CustomEvent('stateChanged', { detail: {
+      showMatches: showMatches,
+      matches: matches
+    } });
+    window.dispatchEvent(event);
+  }, [showMatches, matches]);
+
   /**
    * Handle case sensitive toggle feature
    * to enable user perform case-sensitive search
@@ -114,6 +143,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
   const replace = (context = false): void => {
     setContext(context);
     setReplacements(0);
+    setMatches(new Set());
 
     if (!searchInput) {
       return;
@@ -200,6 +230,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
     let oldString: string = attributes[attribute].originalHTML || attributes[attribute];
     let newString: string = oldString.replace(args.pattern, () => {
       setReplacements((items) => items + 1);
+      addMatchValue(oldString);
       return args.text;
     });
 
@@ -244,6 +275,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
       let oldCaptionString = attributes.caption.originalHTML || attributes.caption;
       let newCaptionString = oldCaptionString.replace(args.pattern, () => {
         setReplacements((items) => items + 1);
+        addMatchValue(oldCaptionString);
         return args.text;
       });
 
@@ -275,6 +307,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
               
               let newCellContent = oldCellContent.replace(args.pattern, () => {
                 setReplacements((items) => items + 1);
+                addMatchValue(oldCellContent);
                 return args.text;
               });
               
@@ -308,6 +341,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
               let oldCellContent = cell.content.originalHTML || cell.content;
               let newCellContent = oldCellContent.replace(args.pattern, () => {
                 setReplacements((items) => items + 1);
+                addMatchValue(oldCellContent);
                 return args.text;
               });
 
@@ -341,6 +375,7 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
               let oldCellContent = cell.content.originalHTML || cell.content;
               let newCellContent = oldCellContent.replace(args.pattern, () => {
                 setReplacements((items) => items + 1);
+                addMatchValue(oldCellContent);
                 return args.text;
               });
 
@@ -449,6 +484,11 @@ const SearchReplaceForBlockEditor = (): JSX.Element => {
                       </>
                     )}
                   </p>
+                  {
+                    !context ? (
+                      <a href="javascript:void(0);" className="js-show-matches" onClick={() => setShowMatches(!showMatches)} >{showMatches ? 'Hide' : 'Show'}</a>
+                    ) : ''
+                  }
                 </div>
               ) : ''
             }
