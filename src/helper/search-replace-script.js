@@ -17,10 +17,7 @@ $(document).ready(function () {
 						</div>
 						<div>
 							<ul style="list-style:decimal;">
-								${[...state.matches].map(match => {
-									const updatedStr = match.replace(regex, (e) => `<span class="search-word-highlight" style="background:yellow;">${e}</span>`);
-									return `<li>${updatedStr}</li>`;
-								}).join('')}
+								${state.matches.map(match => `<li>${match}</li>`).join('')}
 							</ul>
 						</div>
 					</div>
