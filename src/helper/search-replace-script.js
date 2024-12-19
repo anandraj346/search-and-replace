@@ -19,10 +19,7 @@ $(document).ready(function () {
 							</div>
 							<div>
 								<ul style="list-style:decimal;" class="search-matches-list">
-									${[...state.matches].map(match => {
-										const updatedStr = match.replace(regex, (e) => `<span class="search-word-highlight" style="background:yellow;">${e}</span>`);
-										return `<li>${updatedStr}</li>`;
-									}).join('')}
+									${state.matches.map(match => `<li>${match}</li>`).join('')}
 								</ul>
 							</div>
 						</div>
@@ -32,10 +29,7 @@ $(document).ready(function () {
 			}else{
 				let search_matches_list = `
 					<ul style="list-style:decimal;" class="search-matches-list">
-						${[...state.matches].map(match => {
-							const updatedStr = match.replace(regex, (e) => `<span class="search-word-highlight" style="background:yellow;">${e}</span>`);
-							return `<li>${updatedStr}</li>`;
-						}).join('')}
+						${state.matches.map(match => `<li>${match}</li>`).join('')}
 					</ul>
 				`;
 				$('.js-search-matches .search-matches-list').replaceWith(search_matches_list);
