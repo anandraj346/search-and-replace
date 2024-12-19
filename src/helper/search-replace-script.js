@@ -14,7 +14,9 @@ $(document).ready(function () {
 							</div>
 						</div>
 						<div>
-							${[...state.matches].map(match => `<p>${match}</p>`).join('')}
+							<ul style="list-style:decimal;">
+								${[...state.matches].map(match => `<li>${match}</li>`).join('')}
+							</ul>
 						</div>
 					</div>
 				</div>
