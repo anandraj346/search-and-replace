@@ -190,15 +190,26 @@ export const getBlockEditorIframe = (): Document => {
  */
 export const inContainer = (selector: string): boolean => {
   const selection = window.getSelection() as Selection | null;
-  const targetDiv = document.querySelector(selector) as HTMLElement | null;
+  const targetDivs = document.querySelectorAll(selector) as NodeListOf<HTMLElement>;
 
-  if (!selection?.rangeCount || !targetDiv) {
+  if (!selection?.rangeCount || targetDivs.length === 0) {
     return false;
   }
 
   const range: Range = selection.getRangeAt(0);
 
-  return targetDiv.contains(range.startContainer) && targetDiv.contains(range.endContainer);
+  // Helper function to check if the range is inside any of the target divs.
+  const isRangeInsideTargetDivs = (range: Range, divs: NodeListOf<HTMLElement>): boolean => {
+    for (let div of divs) {
+      if (div.contains(range.startContainer) && div.contains(range.endContainer)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Check if the range is inside any of the target divs.
+  return isRangeInsideTargetDivs(range, targetDivs);
 }
 
 /**
